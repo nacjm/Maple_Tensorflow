@@ -1,6 +1,6 @@
-# Adelaide: A Theano-based Emotional Chatbot for Discord
+# Maple: A Theano-based Emotional Chatbot for Discord
 
-Adelaide is my personal experiment with lukalabs' Cakechat program.  I've added discord.py support, sentiment analysis with the TextBlob library, and there is more to come.
+Maple is my personal experiment with lukalabs' Cakechat program.  I've added discord.py support, sentiment analysis with the TextBlob library, and there is more to come.
 
 <a href="https://discordbotlist.com/bots/571924469661302814">
     <img 
