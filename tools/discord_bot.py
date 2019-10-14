@@ -8,6 +8,7 @@ import random
 import time
 import os
 import sys
+import re
 
 from textblob import TextBlob
 
@@ -51,8 +52,9 @@ class EmotionState: #Class to store emotional dats
     def __init__(self):
         self.thought_polarity = 0.0 #Positivity/Negativity
         self.thought_subjectivity = 0.0 #Subjectivity/Objectivity
-        self.emotions_dividend = 2.25 #Controls intensity of the sentiment detection; lower is more intense, higher is less
-        self.emotions_fade = 0.025
+        self.emotions_dividend = 2.0 #Controls intensity of the sentiment detection; lower is more intense, higher is less
+        self.emotions_fade = 0.04
+        self.emotions_minimum = 0.1
         
     async def new_sentiment_analysis(self, input):
         txtblob = TextBlob(input)
@@ -61,9 +63,9 @@ class EmotionState: #Class to store emotional dats
         #TO-DO: More fine tuning
         self.thought_subjectivity += sent.subjectivity
         #self.thought_subjectivity -= 0.25
-        if(self.thought_polarity >= self.emotions_fade):
+        if(self.thought_polarity >= self.emotions_minimum):
             self.thought_polarity -= self.emotions_fade
-        if(self.thought_polarity <= 0 - self.emotions_fade):
+        if(self.thought_polarity <= 0 - self.emotions_minimum):
             self.thought_polarity += self.emotions_fade
         if(self.thought_subjectivity < 0.0):
             self.thought_subjectivity = 0.0
@@ -76,7 +78,7 @@ class EmotionState: #Class to store emotional dats
             self.thought_polarity = 1.0
         if(self.thought_subjectivity >= 0.0 and self.thought_subjectivity <= 0.4): #If feeling neutral and indifferent, then change condition to neutral
             COND = "neutral"
-        if(self.thought_subjectivity >= 0.4 and self.thought_polarity >= 0.72):
+        if(self.thought_subjectivity >= 0.4 and self.thought_polarity >= 0.6):
             COND = "joy"
         if(self.thought_subjectivity >= 0.4 and self.thought_polarity <= -0.1):
             COND = "sadness"
@@ -119,11 +121,25 @@ async def on_message(message):
                 txtinput = message.content.replace("<@" + str(client.user.id) + ">", "")  #Filter out the mention so the bot does not get confused
                 if(len(txtinput) > 220): #Spam protection
                     txt = "I am sorry, that is too long for me."
+                dicestr = re.search("Roll (\d{1,2})d(\d{1,3})",message.content)
+                if(dicestr != None):
+                    dice = [dicestr.group(1), dicestr.group(2)]
+                    output = "I rolled "
+                    for i in range(int(dice[0])):
+                        output += str(random.randrange(1, int(dice[1]))) + ", "
+                    txt = output
                 else:
+                    blob = TextBlob(txtinput)
+                    lang = blob.detect_language()
+                    if(lang != "en"):
+                        txtinput = str(blob.translate(from_lang=lang, to="en"))
                     _context.append(txtinput)
                     COND = await es.new_sentiment_analysis(txtinput) #Determine how to respond to the sentence emotionally
                     await client.change_presence(activity=discord.Game(name='feeling ' + COND)) #Display the bot's emotion as a status
                     txt = get_response(_context, COND) #Get a response!
+                    response_blob = TextBlob(txt)
+                    if(lang != "en"):
+                        txt = str(response_blob.translate(from_lang="en", to=lang))
                 bot_message = await message.channel.send(txt) #Fire away!
 print('Starting...')
 client.run('TOKEN_GOES_HERE') #Replace TOKEN_GOES_HERE with your bot's API token
