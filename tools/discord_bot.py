@@ -9,6 +9,7 @@ import time
 import os
 import sys
 import re
+import schedule
 
 from textblob import TextBlob
 
@@ -38,6 +39,11 @@ def getAllUsersCount():
          user_count += len(g.members)
     return("Current user count: " + str(user_count))
 
+
+async def restart_script():
+    os.system("python3 discord_bot_public.py") 
+    sys.exit()
+
 @client.event
 async def on_ready():
     print('Logged in as '+client.user.name+' (ID:'+str(client.user.id)+') | '+str(len(client.guilds))+' servers | ' + getAllUsersCount())
@@ -47,12 +53,11 @@ async def on_ready():
 
 
 
-
 class EmotionState: #Class to store emotional dats
     def __init__(self):
         self.thought_polarity = 0.0 #Positivity/Negativity
         self.thought_subjectivity = 0.0 #Subjectivity/Objectivity
-        self.emotions_dividend = 2.0 #Controls intensity of the sentiment detection; lower is more intense, higher is less
+        self.emotions_dividend = 2.6 #Controls intensity of the sentiment detection; lower is more intense, higher is less
         self.emotions_fade = 0.04
         self.emotions_minimum = 0.1
         
@@ -111,6 +116,8 @@ def sentiment_analysis(input):
     #await client.change_presence(activity=discord.Game(name='feeling ' + COND)) #Display the bot's emotion as a status
     return COND #Return the condition to respond with!
 
+import datetime
+
 
 #Called when a message is received
 @client.event
@@ -118,7 +125,7 @@ async def on_message(message):
     if not (message.author == client.user): #Check to ensure the bot does not respond to its own messages
         if(client.user.mentioned_in(message) or isinstance(message.channel, discord.abc.PrivateChannel)): #Check if the bot is mentioned or if the message is in DMs
             async with message.channel.typing(): #Show that the bot is typing
-                txtinput = message.content.replace("<@" + str(client.user.id) + ">", "")  #Filter out the mention so the bot does not get confused
+                txtinput = message.content.replace("<@" + str(client.user.id) + ">", "").replace("<@!" + str(client.user.id) + ">", "")  #Filter out the mention so the bot does not get confused
                 if(len(txtinput) > 220): #Spam protection
                     txt = "I am sorry, that is too long for me."
                 dicestr = re.search("Roll (\d{1,2})d(\d{1,3})",message.content)
@@ -130,7 +137,8 @@ async def on_message(message):
                     txt = output
                 else:
                     blob = TextBlob(txtinput)
-                    lang = blob.detect_language()
+                    #lang = blob.detect_language()
+                    lang = "en"
                     if(lang != "en"):
                         txtinput = str(blob.translate(from_lang=lang, to="en"))
                     _context.append(txtinput)
@@ -142,4 +150,5 @@ async def on_message(message):
                         txt = str(response_blob.translate(from_lang="en", to=lang))
                 bot_message = await message.channel.send(txt) #Fire away!
 print('Starting...')
+schedule.every().day.at("23:00").do(client.loop.call_soon_threadsafe, restart_script())
 client.run('TOKEN_GOES_HERE') #Replace TOKEN_GOES_HERE with your bot's API token
