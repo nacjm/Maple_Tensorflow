@@ -1,4 +1,4 @@
-# Maple: A Theano-based Emotional Chatbot for Discord
+# Maple: A Tensorflow & Keras--based Emotional Chatbot for Discord
 
 Maple is my personal experiment with lukalabs' Cakechat program.  I've added discord.py support, sentiment analysis with the TextBlob library, and there is more to come.
 
@@ -55,6 +55,29 @@ Bot: Thanks, can I have a hug?
 User: Sure. * hugs *
 Bot: * hugs back *
 ```
+
+#Requirements
+Python 3.6.8
+Tensorflow
+Keras
+Numpy 1.16.0
+Pandas 0.23.4
+Uniodecsv 0.14.1
+NLTK 3.4 and english language data
+Scipy 1.2.0
+Scikit-learn 0.20.2
+Keras 2.2.4
+Telepot 12.6
+Gensim 1.0.1
+Cachetools 3.0.0
+Gunicorn 19.9.0
+TQDM 4.30.0
+Discord.py 1.0.1
+Textblob 0.15.3
+Schedule 0.6.0
+
+You can install most of these via pip.
+
 ## Original Readme
 # CakeChat: Emotional Generative Dialog System
 
